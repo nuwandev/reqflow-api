@@ -15,21 +15,28 @@ public class Sha256TokenHasher implements TokenHasher {
 
     @Override
     public String hash(String raw) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(raw.getBytes(StandardCharsets.UTF_8));
-            return hexFormat.formatHex(hashBytes);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 algorithm not found", e);
-        }
+        byte[] hashBytes = getDigest(raw);
+        return hexFormat.formatHex(hashBytes);
     }
 
     @Override
-    public boolean matches(String raw, String hash) {
-        String hashedRaw = hash(raw);
-        return MessageDigest.isEqual(
-            hashedRaw.getBytes(StandardCharsets.UTF_8),
-            hash.getBytes(StandardCharsets.UTF_8)
-        );
+    public boolean verify(String raw, String hash) {
+        byte[] expected = getDigest(raw);
+        byte[] actual;
+        try {
+            actual = hexFormat.parseHex(hash);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Hash is not valid hex", e);
+        }
+        return MessageDigest.isEqual(expected, actual);
+    }
+
+    private byte[] getDigest(String raw) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return digest.digest(raw.getBytes(StandardCharsets.UTF_8));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not found", e);
+        }
     }
 }
