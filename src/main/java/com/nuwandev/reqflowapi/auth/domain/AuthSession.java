@@ -1,5 +1,6 @@
 package com.nuwandev.reqflowapi.auth.domain;
 
+import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -79,7 +80,7 @@ public class AuthSession {
         if (refreshTokenHash == null)
             throw new IllegalStateException("Session does not have a refresh token hash");
 
-        return hash.equals(this.refreshTokenHash);
+        return MessageDigest.isEqual(hash.getBytes(), this.refreshTokenHash.getBytes());
     }
 
     public boolean wasReplaced() {
