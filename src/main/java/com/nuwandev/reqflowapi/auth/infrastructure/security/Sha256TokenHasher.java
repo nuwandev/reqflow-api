@@ -26,7 +26,7 @@ public class Sha256TokenHasher implements TokenHasher {
         try {
             actual = hexFormat.parseHex(hash);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Hash is not valid hex", e);
+            return false;
         }
         return MessageDigest.isEqual(expected, actual);
     }
