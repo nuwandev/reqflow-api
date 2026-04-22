@@ -69,6 +69,8 @@ public class AuthSession {
     }
 
     public void rotate(UUID newSessionId, Instant now) {
+        if (isRevoked())
+            throw new IllegalStateException("Cannot rotate a revoked session");
         if (newSessionId == null)
             throw new IllegalArgumentException("Replacement session ID cannot be null");
         if (replacedBySessionId != null)
