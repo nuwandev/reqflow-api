@@ -42,22 +42,26 @@ public class User {
         return user;
     }
 
-    public void deactivate() {
+    public void deactivate(Instant now) {
         this.isActive = false;
+        this.updatedAt = now;
     }
 
-    public void activate() {
+    public void activate(Instant now) {
         this.isActive = true;
+        this.updatedAt = now;
     }
 
-    public void changePassword(String newPasswordHash) {
+    public void changePassword(String newPasswordHash, Instant now) {
         if (newPasswordHash == null || newPasswordHash.isBlank())
             throw new IllegalArgumentException("New password hash cannot be null or blank");
         this.passwordHash = newPasswordHash;
+        this.updatedAt = now;
     }
 
-    public void changeEmail(String newEmail) {
+    public void changeEmail(String newEmail, Instant now) {
         this.email = normalizeAndValidateEmail(newEmail);
+        this.updatedAt = now;
     }
 
     public boolean isActive() {
