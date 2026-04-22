@@ -23,19 +23,17 @@ public class User {
     ) {
         if (tenantId == null)
             throw new IllegalArgumentException("Tenant ID cannot be null");
-        if (email == null || email.isBlank() || !email.contains("@"))
-            throw new IllegalArgumentException("Email cannot be null, blank, and must contain '@'");
         if (passwordHash == null || passwordHash.isBlank())
             throw new IllegalArgumentException("Password hash cannot be null or blank");
         if (fullName == null || fullName.isBlank())
             throw new IllegalArgumentException("Full name cannot be null or blank");
-        if  (now == null)
+        if (now == null)
             throw new IllegalArgumentException("Now cannot be null");
 
         User user = new User();
         user.id = UUID.randomUUID();
         user.tenantId = tenantId;
-        user.email = email.toLowerCase().trim();
+        user.email = normalizeAndValidateEmail(email);
         user.passwordHash = passwordHash;
         user.fullName = fullName.trim();
         user.isActive = true;
@@ -59,12 +57,19 @@ public class User {
     }
 
     public void changeEmail(String newEmail) {
-        if (newEmail == null || newEmail.isBlank())
-            throw new IllegalArgumentException("Email cannot be null or blank");
-        this.email = newEmail.toLowerCase().trim();
+        this.email = normalizeAndValidateEmail(newEmail);
     }
 
     public boolean isActive() {
         return this.isActive;
+    }
+
+    private static String normalizeAndValidateEmail(String email) {
+        if (email == null)
+            throw new IllegalArgumentException("Email cannot be null");
+        String normalizedEmail = email.toLowerCase().trim();
+        if (normalizedEmail.isBlank() || !normalizedEmail.contains("@"))
+            throw new IllegalArgumentException("Email cannot be blank and must contain '@'");
+        return normalizedEmail;
     }
 }
