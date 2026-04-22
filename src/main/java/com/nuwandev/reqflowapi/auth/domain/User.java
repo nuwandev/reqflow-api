@@ -47,6 +47,7 @@ public class User {
     }
 
     public void deactivate(Instant now) {
+        requireNow(now);
         if (this.isActive) {
             this.isActive = false;
         }
@@ -54,6 +55,7 @@ public class User {
     }
 
     public void activate(Instant now) {
+        requireNow(now);
         if (!this.isActive) {
             this.isActive = true;
         }
@@ -61,6 +63,7 @@ public class User {
     }
 
     public void changePassword(String newPasswordHash, Instant now) {
+        requireNow(now);
         if (newPasswordHash == null || newPasswordHash.isBlank())
             throw new IllegalArgumentException("New password hash cannot be null or blank");
         this.passwordHash = newPasswordHash;
@@ -68,6 +71,7 @@ public class User {
     }
 
     public void changeEmail(String newEmail, Instant now) {
+        requireNow(now);
         this.email = normalizeAndValidateEmail(newEmail);
         this.updatedAt = now;
     }
@@ -77,6 +81,7 @@ public class User {
     }
 
     public void changeRole(UserRole newRole, Instant now) {
+        requireNow(now);
         if (newRole == null)
             throw new IllegalArgumentException("Role cannot be null");
         this.role = newRole;
@@ -90,5 +95,10 @@ public class User {
         if (normalizedEmail.isBlank() || !normalizedEmail.contains("@"))
             throw new IllegalArgumentException("Email cannot be blank and must contain '@'");
         return normalizedEmail;
+    }
+
+    private static void requireNow(Instant now) {
+        if (now == null)
+            throw new IllegalArgumentException("Now cannot be null");
     }
 }
