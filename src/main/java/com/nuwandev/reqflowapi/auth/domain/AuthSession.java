@@ -1,5 +1,6 @@
 package com.nuwandev.reqflowapi.auth.domain;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.UUID;
@@ -67,13 +68,13 @@ public class AuthSession {
         this.revokedAt = time;
     }
 
-    public void markReplacedBy(UUID newSessionId, Instant revokedAt) {
+    public void rotate(UUID newSessionId, Instant now) {
         if (replacedBySessionId != null)
             throw new IllegalStateException("Session is already replaced by another session");
 
         this.replacedBySessionId = newSessionId;
         if (this.revokedAt == null) {
-            this.revokedAt = revokedAt;
+            this.revokedAt = now;
         }
     }
 
@@ -83,7 +84,7 @@ public class AuthSession {
         if (refreshTokenHash == null)
             throw new IllegalStateException("Session does not have a refresh token hash");
 
-        return MessageDigest.isEqual(hash.getBytes(), this.refreshTokenHash.getBytes());
+        return MessageDigest.isEqual(hash.getBytes(StandardCharsets.UTF_8), this.refreshTokenHash.getBytes(StandardCharsets.UTF_8));
     }
 
     public boolean isReuseAttempt() {
