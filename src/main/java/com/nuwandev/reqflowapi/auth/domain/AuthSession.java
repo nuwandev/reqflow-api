@@ -72,6 +72,9 @@ public class AuthSession {
             throw new IllegalStateException("Session is already replaced by another session");
 
         this.replacedBySessionId = newSessionId;
+        if (this.revokedAt == null) {
+            this.revokedAt = Instant.now();
+        }
     }
 
     public boolean matchesToken(String hash) {
@@ -81,6 +84,10 @@ public class AuthSession {
             throw new IllegalStateException("Session does not have a refresh token hash");
 
         return MessageDigest.isEqual(hash.getBytes(), this.refreshTokenHash.getBytes());
+    }
+
+    public boolean isReuseAttempt() {
+        return isRevoked();
     }
 
     public boolean wasReplaced() {
