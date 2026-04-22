@@ -43,12 +43,16 @@ public class User {
     }
 
     public void deactivate(Instant now) {
-        this.isActive = false;
+        if (this.isActive) {
+            this.isActive = false;
+        }
         this.updatedAt = now;
     }
 
     public void activate(Instant now) {
-        this.isActive = true;
+        if (!this.isActive) {
+            this.isActive = true;
+        }
         this.updatedAt = now;
     }
 
