@@ -1,17 +1,27 @@
 package com.nuwandev.reqflowapi.auth.domain;
 
+import lombok.Getter;
+
 import java.time.Instant;
 import java.util.UUID;
 
 public class User {
+    @Getter
     private UUID id;
+    @Getter
     private UUID tenantId;
+    @Getter
     private String email;
     private String passwordHash;
+    @Getter
     private String fullName;
+    @Getter
     private UserRole role;
+    @Getter
     private boolean isActive;
+    @Getter
     private Instant createdAt;
+    @Getter
     private Instant updatedAt;
 
     public static User create(
@@ -74,10 +84,6 @@ public class User {
         requireNow(now);
         this.email = normalizeAndValidateEmail(newEmail);
         this.updatedAt = now;
-    }
-
-    public boolean isActive() {
-        return this.isActive;
     }
 
     public void changeRole(UserRole newRole, Instant now) {
