@@ -69,6 +69,8 @@ public class AuthSession {
     }
 
     public void rotate(UUID newSessionId, Instant now) {
+        if (newSessionId == null)
+            throw new IllegalArgumentException("Replacement session ID cannot be null");
         if (replacedBySessionId != null)
             throw new IllegalStateException("Session is already replaced by another session");
 
