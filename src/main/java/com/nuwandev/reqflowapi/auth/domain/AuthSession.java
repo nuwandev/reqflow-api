@@ -50,10 +50,12 @@ public class AuthSession {
     }
 
     public boolean canBeUsedForRefresh(Instant now) {
+        requireNow(now);
         return !isRevoked() && !wasReplaced() && !isExpired(now);
     }
 
     public boolean isExpired(Instant now) {
+        requireNow(now);
         return this.expiresAt.isBefore(now);
     }
 
@@ -61,14 +63,16 @@ public class AuthSession {
         return this.revokedAt != null;
     }
 
-    public void revoke(Instant time) {
+    public void revoke(Instant now) {
+        requireNow(now);
         if (revokedAt != null)
             throw new IllegalStateException("Session is already revoked");
 
-        this.revokedAt = time;
+        this.revokedAt = now;
     }
 
     public void rotate(UUID newSessionId, Instant now) {
+        requireNow(now);
         if (isRevoked())
             throw new IllegalStateException("Cannot rotate a revoked session");
         if (newSessionId == null)
@@ -97,5 +101,10 @@ public class AuthSession {
 
     public boolean wasReplaced() {
         return replacedBySessionId != null;
+    }
+
+    private static void requireNow(Instant now) {
+        if (now == null)
+            throw new IllegalArgumentException("Now cannot be null");
     }
 }
