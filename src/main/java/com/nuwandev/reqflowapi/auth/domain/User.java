@@ -9,7 +9,7 @@ public class User {
     private String email;
     private String passwordHash;
     private String fullName;
-    private String role;
+    private UserRole role;
     private boolean isActive;
     private Instant createdAt;
     private Instant updatedAt;
@@ -19,6 +19,7 @@ public class User {
             String email,
             String passwordHash,
             String fullName,
+            UserRole role,
             Instant now
     ) {
         if (tenantId == null)
@@ -27,6 +28,8 @@ public class User {
             throw new IllegalArgumentException("Password hash cannot be null or blank");
         if (fullName == null || fullName.isBlank())
             throw new IllegalArgumentException("Full name cannot be null or blank");
+        if (role == null)
+            throw new IllegalArgumentException("Role cannot be null");
         if (now == null)
             throw new IllegalArgumentException("Now cannot be null");
 
@@ -36,6 +39,7 @@ public class User {
         user.email = normalizeAndValidateEmail(email);
         user.passwordHash = passwordHash;
         user.fullName = fullName.trim();
+        user.role = role;
         user.isActive = true;
         user.createdAt = now;
         user.updatedAt = now;
@@ -70,6 +74,13 @@ public class User {
 
     public boolean isActive() {
         return this.isActive;
+    }
+
+    public void changeRole(UserRole newRole, Instant now) {
+        if (newRole == null)
+            throw new IllegalArgumentException("Role cannot be null");
+        this.role = newRole;
+        this.updatedAt = now;
     }
 
     private static String normalizeAndValidateEmail(String email) {
