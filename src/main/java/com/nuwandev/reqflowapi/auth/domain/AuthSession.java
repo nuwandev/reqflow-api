@@ -77,6 +77,8 @@ public class AuthSession {
             throw new IllegalStateException("Cannot rotate a revoked session");
         if (newSessionId == null)
             throw new IllegalArgumentException("Replacement session ID cannot be null");
+        if (newSessionId.equals(this.id))
+            throw new IllegalArgumentException("Replacement session ID cannot be the same as the current session ID");
         if (replacedBySessionId != null)
             throw new IllegalStateException("Session is already replaced by another session");
 
