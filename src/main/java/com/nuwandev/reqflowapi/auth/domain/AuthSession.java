@@ -67,13 +67,13 @@ public class AuthSession {
         this.revokedAt = time;
     }
 
-    public void markReplacedBy(UUID newSessionId) {
+    public void markReplacedBy(UUID newSessionId, Instant revokedAt) {
         if (replacedBySessionId != null)
             throw new IllegalStateException("Session is already replaced by another session");
 
         this.replacedBySessionId = newSessionId;
         if (this.revokedAt == null) {
-            this.revokedAt = Instant.now();
+            this.revokedAt = revokedAt;
         }
     }
 
@@ -87,7 +87,7 @@ public class AuthSession {
     }
 
     public boolean isReuseAttempt() {
-        return isRevoked();
+        return isRevoked() && wasReplaced();
     }
 
     public boolean wasReplaced() {
