@@ -1,21 +1,21 @@
 package com.nuwandev.reqflowapi.auth.domain;
 
+import lombok.Getter;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.UUID;
 
+@Getter
 public class AuthSession {
     private UUID id;
     private UUID tenantId;
     private UUID userId;
-
+    private String refreshTokenHash;
     private Instant issuedAt;
     private Instant expiresAt;
     private Instant revokedAt;
-
-    private String refreshTokenHash;
-
     private UUID replacedBySessionId;
 
     public static AuthSession create(
