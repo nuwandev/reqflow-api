@@ -12,6 +12,7 @@ public class User {
     private UUID tenantId;
     @Getter
     private String email;
+    @Getter
     private String passwordHash;
     @Getter
     private String fullName;
