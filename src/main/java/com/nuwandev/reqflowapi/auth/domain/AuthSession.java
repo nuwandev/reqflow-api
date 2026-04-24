@@ -17,6 +17,8 @@ public class AuthSession {
     private Instant expiresAt;
     private Instant revokedAt;
     private UUID replacedBySessionId;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public static AuthSession create(
             UUID userId,
@@ -45,6 +47,8 @@ public class AuthSession {
         session.refreshTokenHash = refreshTokenHash;
         session.issuedAt = now;
         session.expiresAt = expiry;
+        session.createdAt = now;
+        session.updatedAt = now;
 
         return session;
     }
@@ -57,7 +61,9 @@ public class AuthSession {
             Instant issuedAt,
             Instant expiresAt,
             Instant revokedAt,
-            UUID replacedBySessionId
+            UUID replacedBySessionId,
+            Instant createdAt,
+            Instant updatedAt
     ) {
         if (id == null)
             throw new IllegalArgumentException("Session ID cannot be null");
@@ -71,6 +77,11 @@ public class AuthSession {
             throw new IllegalArgumentException("issuedAt cannot be null");
         if (expiresAt == null)
             throw new IllegalArgumentException("expiresAt cannot be null");
+        if (createdAt == null)
+            throw new IllegalArgumentException("createdAt cannot be null");
+        if (updatedAt == null)
+            throw new IllegalArgumentException("updatedAt cannot be null");
+
         AuthSession session = new AuthSession();
         session.id = id;
         session.tenantId = tenantId;
@@ -80,6 +91,9 @@ public class AuthSession {
         session.expiresAt = expiresAt;
         session.revokedAt = revokedAt;
         session.replacedBySessionId = replacedBySessionId;
+        session.createdAt = createdAt;
+        session.updatedAt = updatedAt;
+
         return session;
     }
 
@@ -103,6 +117,7 @@ public class AuthSession {
             throw new IllegalStateException("Session is already revoked");
 
         this.revokedAt = now;
+        this.updatedAt = now;
     }
 
     public void rotate(UUID newSessionId, Instant now) {
@@ -120,6 +135,7 @@ public class AuthSession {
         if (this.revokedAt == null) {
             this.revokedAt = now;
         }
+        this.updatedAt = now;
     }
 
     public boolean matchesToken(String hash) {
