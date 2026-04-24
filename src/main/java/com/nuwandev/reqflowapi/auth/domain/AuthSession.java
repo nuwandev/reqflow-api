@@ -49,6 +49,40 @@ public class AuthSession {
         return session;
     }
 
+    public static AuthSession reconstruct(
+            UUID id,
+            UUID tenantId,
+            UUID userId,
+            String refreshTokenHash,
+            Instant issuedAt,
+            Instant expiresAt,
+            Instant revokedAt,
+            UUID replacedBySessionId
+    ) {
+        if (id == null)
+            throw new IllegalArgumentException("Session ID cannot be null");
+        if (tenantId == null)
+            throw new IllegalArgumentException("Tenant ID cannot be null");
+        if (userId == null)
+            throw new IllegalArgumentException("User ID cannot be null");
+        if (refreshTokenHash == null || refreshTokenHash.isBlank())
+            throw new IllegalArgumentException("Refresh token hash cannot be null or blank");
+        if (issuedAt == null)
+            throw new IllegalArgumentException("issuedAt cannot be null");
+        if (expiresAt == null)
+            throw new IllegalArgumentException("expiresAt cannot be null");
+        AuthSession session = new AuthSession();
+        session.id = id;
+        session.tenantId = tenantId;
+        session.userId = userId;
+        session.refreshTokenHash = refreshTokenHash;
+        session.issuedAt = issuedAt;
+        session.expiresAt = expiresAt;
+        session.revokedAt = revokedAt;
+        session.replacedBySessionId = replacedBySessionId;
+        return session;
+    }
+
     public boolean canBeUsedForRefresh(Instant now) {
         requireNow(now);
         return !isRevoked() && !wasReplaced() && !isExpired(now);
