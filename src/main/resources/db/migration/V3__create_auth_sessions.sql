@@ -1,4 +1,3 @@
-
 CREATE TABLE auth_sessions (
     id uuid CONSTRAINT pk_auth_sessions PRIMARY KEY,
     tenant_id uuid NOT NULL CONSTRAINT fk_auth_sessions_tenants REFERENCES tenants(id),
@@ -15,3 +14,4 @@ CREATE TABLE auth_sessions (
 
 CREATE INDEX idx_auth_sessions_tenant_id_user_id_expires_at ON auth_sessions (tenant_id, user_id, expires_at);
 CREATE INDEX idx_auth_sessions_refresh_token_hash_active ON auth_sessions (refresh_token_hash) WHERE revoked_at IS NULL;
+CREATE INDEX idx_auth_sessions_tenant_id_user_id_revoked_at ON auth_sessions (tenant_id, user_id, revoked_at);
