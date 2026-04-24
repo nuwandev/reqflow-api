@@ -5,24 +5,16 @@ import lombok.Getter;
 import java.time.Instant;
 import java.util.UUID;
 
+@Getter
 public class User {
-    @Getter
     private UUID id;
-    @Getter
     private UUID tenantId;
-    @Getter
     private String email;
-    @Getter
     private String passwordHash;
-    @Getter
     private String fullName;
-    @Getter
     private UserRole role;
-    @Getter
     private boolean isActive;
-    @Getter
     private Instant createdAt;
-    @Getter
     private Instant updatedAt;
 
     public static User create(
