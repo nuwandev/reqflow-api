@@ -56,6 +56,46 @@ public class User {
         return user;
     }
 
+    public static User reconstruct(
+            UUID id,
+            UUID tenantId,
+            String email,
+            String passwordHash,
+            String fullName,
+            UserRole role,
+            boolean isActive,
+            Instant createdAt,
+            Instant updatedAt
+    ) {
+        if (id == null)
+            throw new IllegalArgumentException("User ID cannot be null");
+        if (tenantId == null)
+            throw new IllegalArgumentException("Tenant ID cannot be null");
+        if (email == null || email.isBlank())
+            throw new IllegalArgumentException("Email cannot be null or blank");
+        if (passwordHash == null || passwordHash.isBlank())
+            throw new IllegalArgumentException("Password hash cannot be null or blank");
+        if (fullName == null || fullName.isBlank())
+            throw new IllegalArgumentException("Full name cannot be null or blank");
+        if (role == null)
+            throw new IllegalArgumentException("Role cannot be null");
+        if (createdAt == null)
+            throw new IllegalArgumentException("createdAt cannot be null");
+        if (updatedAt == null)
+            throw new IllegalArgumentException("updatedAt cannot be null");
+        User user = new User();
+        user.id = id;
+        user.tenantId = tenantId;
+        user.email = email;
+        user.passwordHash = passwordHash;
+        user.fullName = fullName;
+        user.role = role;
+        user.isActive = isActive;
+        user.createdAt = createdAt;
+        user.updatedAt = updatedAt;
+        return user;
+    }
+
     public void deactivate(Instant now) {
         requireNow(now);
         if (this.isActive) {
