@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface AuthSessionRepository {
 
-    Optional<AuthSession> findByRefreshTokenHash(UUID tenantId, String hash);
+    Optional<AuthSession> findByRefreshTokenHash(UUID tenantId, String hash, Instant now);
 
     void save(AuthSession session);
 

@@ -20,14 +20,14 @@ public class JdbcAuthSessionRepository implements AuthSessionRepository {
     }
 
     @Override
-    public Optional<AuthSession> findByRefreshTokenHash(UUID tenantId, String hash) {
+    public Optional<AuthSession> findByRefreshTokenHash(UUID tenantId, String hash, Instant now) {
         String sql = """
                 SELECT id, tenant_id, user_id, refresh_token_hash, issued_at, expires_at, revoked_at, replaced_by_session_id, created_at, updated_at
                 FROM auth_sessions
-                WHERE tenant_id = ? AND refresh_token_hash = ? AND revoked_at IS NULL
+                WHERE tenant_id = ? AND refresh_token_hash = ? AND revoked_at IS NULL AND expires_at > ?
                 """;
 
-        List<AuthSession> sessions = jdbcTemplate.query(sql, authSessionRowMapper, tenantId, hash);
+        List<AuthSession> sessions = jdbcTemplate.query(sql, authSessionRowMapper, tenantId, hash, now);
         return Optional.ofNullable(DataAccessUtils.singleResult(sessions));
     }
 
