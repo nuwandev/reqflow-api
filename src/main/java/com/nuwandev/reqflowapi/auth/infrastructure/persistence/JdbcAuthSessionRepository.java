@@ -20,41 +20,39 @@ public class JdbcAuthSessionRepository implements AuthSessionRepository {
     }
 
     @Override
-    public Optional<AuthSession> findByRefreshTokenHash(UUID tenantId, String hash, Instant now) {
+    public Optional<AuthSession> findByRefreshTokenHash(UUID tenantId, String hash) {
         String sql = """
                 SELECT id, tenant_id, user_id, refresh_token_hash, issued_at, expires_at, revoked_at, replaced_by_session_id, created_at, updated_at
                 FROM auth_sessions
-                WHERE tenant_id = ? AND refresh_token_hash = ? AND revoked_at IS NULL AND expires_at > ?
+                WHERE tenant_id = ? AND refresh_token_hash = ?
                 """;
 
-        List<AuthSession> sessions = jdbcTemplate.query(sql, authSessionRowMapper, tenantId, hash, now);
+        List<AuthSession> sessions = jdbcTemplate.query(sql, authSessionRowMapper, tenantId, hash);
         return Optional.ofNullable(DataAccessUtils.singleResult(sessions));
     }
 
     @Override
     public void save(AuthSession session) {
         String sql = """
-            INSERT INTO auth_sessions
-                (
-                 id,
-                 tenant_id,
-                 user_id,
-                 refresh_token_hash,
-                 issued_at,
-                 expires_at,
-                 revoked_at,
-                 replaced_by_session_id,
-                 created_at,
-                 updated_at
-                 )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT (id) DO UPDATE SET
-                revoked_at = EXCLUDED.revoked_at,
-                replaced_by_session_id = EXCLUDED.replaced_by_session_id,
-                updated_at = EXCLUDED.updated_at
-            WHERE revoked_at IS NULL
-              AND replaced_by_session_id IS NULL
-            """;
+                INSERT INTO auth_sessions
+                    (
+                     id,
+                     tenant_id,
+                     user_id,
+                     refresh_token_hash,
+                     issued_at,
+                     expires_at,
+                     revoked_at,
+                     replaced_by_session_id,
+                     created_at,
+                     updated_at
+                     )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT (id) DO UPDATE SET
+                    revoked_at = EXCLUDED.revoked_at,
+                    replaced_by_session_id = EXCLUDED.replaced_by_session_id,
+                    updated_at = EXCLUDED.updated_at
+                """;
 
         int rows = jdbcTemplate.update(sql,
                 session.getId(),
@@ -101,18 +99,22 @@ public class JdbcAuthSessionRepository implements AuthSessionRepository {
     }
 
     private final RowMapper<AuthSession> authSessionRowMapper = (rs, rowNum) -> {
-        UUID id = (UUID) rs.getObject("id");
-        UUID tenantId = (UUID) rs.getObject("tenant_id");
-        UUID userId = (UUID) rs.getObject("user_id");
+        UUID id = rs.getObject("id", UUID.class);
+        UUID tenantId = rs.getObject("tenant_id", UUID.class);
+        UUID userId = rs.getObject("user_id", UUID.class);
         String refreshTokenHash = rs.getString("refresh_token_hash");
-        Instant issuedAt = rs.getTimestamp("issued_at").toInstant();
-        Instant expiresAt = rs.getTimestamp("expires_at").toInstant();
+        java.sql.Timestamp issuedAtTs = rs.getTimestamp("issued_at");
+        Instant issuedAt = issuedAtTs != null ? issuedAtTs.toInstant() : null;
+        java.sql.Timestamp expiresAtTs = rs.getTimestamp("expires_at");
+        Instant expiresAt = expiresAtTs != null ? expiresAtTs.toInstant() : null;
         java.sql.Timestamp revokedAtTs = rs.getTimestamp("revoked_at");
         Instant revokedAt = revokedAtTs != null ? revokedAtTs.toInstant() : null;
-        UUID replacedBySessionId = (UUID) rs.getObject("replaced_by_session_id");
+        UUID replacedBySessionId = rs.getObject("replaced_by_session_id", UUID.class);
         if (rs.wasNull()) replacedBySessionId = null;
-        Instant  createdAt = rs.getTimestamp("created_at").toInstant();
-        Instant  updatedAt = rs.getTimestamp("updated_at").toInstant();
+        java.sql.Timestamp createdAtTs = rs.getTimestamp("created_at");
+        Instant createdAt = createdAtTs != null ? createdAtTs.toInstant() : null;
+        java.sql.Timestamp updatedAtTs = rs.getTimestamp("updated_at");
+        Instant updatedAt = updatedAtTs != null ? updatedAtTs.toInstant() : null;
         return AuthSession.reconstruct(
                 id,
                 tenantId,
