@@ -16,6 +16,36 @@ public class JdbcUserRepository implements UserRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final RowMapper<User> userRowMapper = (rs, rowNum) -> {
+        UUID id = (UUID) rs.getObject("id");
+        UUID tenantId = (UUID) rs.getObject("tenant_id");
+        String email = rs.getString("email");
+        String passwordHash = rs.getString("password_hash");
+        String fullName = rs.getString("full_name");
+        String roleStr = rs.getString("role");
+        boolean isActive = rs.getBoolean("is_active");
+        Instant createdAt = rs.getTimestamp("created_at").toInstant();
+        Instant updatedAt = rs.getTimestamp("updated_at").toInstant();
+        UserRole role;
+        try {
+            role = UserRole.valueOf(roleStr);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("Invalid user role in DB: " + roleStr, e);
+        }
+
+        return User.reconstruct(
+                id,
+                tenantId,
+                email,
+                passwordHash,
+                fullName,
+                role,
+                isActive,
+                createdAt,
+                updatedAt
+        );
+    };
+
     public JdbcUserRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -80,35 +110,4 @@ public class JdbcUserRepository implements UserRepository {
         List<User> results = jdbcTemplate.query(sql, userRowMapper, args);
         return Optional.ofNullable(DataAccessUtils.singleResult(results));
     }
-
-    private final RowMapper<User> userRowMapper = (rs, rowNum) -> {
-        UUID id = (UUID) rs.getObject("id");
-        UUID tenantId = (UUID) rs.getObject("tenant_id");
-        String email = rs.getString("email");
-        String passwordHash = rs.getString("password_hash");
-        String fullName = rs.getString("full_name");
-        String roleStr = rs.getString("role");
-        boolean isActive = rs.getBoolean("is_active");
-        Instant createdAt = rs.getTimestamp("created_at").toInstant();
-        Instant updatedAt = rs.getTimestamp("updated_at").toInstant();
-        UserRole role;
-        try {
-            role = UserRole.valueOf(roleStr);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalStateException("Invalid user role in DB: " + roleStr, e);
-        }
-
-        return User.reconstruct(
-                id,
-                tenantId,
-                email,
-                passwordHash,
-                fullName,
-                role,
-                isActive,
-                createdAt,
-                updatedAt
-        );
-    };
-
 }

@@ -89,6 +89,20 @@ public class User {
         return user;
     }
 
+    private static String normalizeAndValidateEmail(String email) {
+        if (email == null)
+            throw new IllegalArgumentException("Email cannot be null");
+        String normalizedEmail = email.toLowerCase().trim();
+        if (normalizedEmail.isBlank() || !normalizedEmail.contains("@"))
+            throw new IllegalArgumentException("Email cannot be blank and must contain '@'");
+        return normalizedEmail;
+    }
+
+    private static void requireNow(Instant now) {
+        if (now == null)
+            throw new IllegalArgumentException("Now cannot be null");
+    }
+
     public void deactivate(Instant now) {
         requireNow(now);
         if (this.isActive) {
@@ -125,19 +139,5 @@ public class User {
             throw new IllegalArgumentException("Role cannot be null");
         this.role = newRole;
         this.updatedAt = now;
-    }
-
-    private static String normalizeAndValidateEmail(String email) {
-        if (email == null)
-            throw new IllegalArgumentException("Email cannot be null");
-        String normalizedEmail = email.toLowerCase().trim();
-        if (normalizedEmail.isBlank() || !normalizedEmail.contains("@"))
-            throw new IllegalArgumentException("Email cannot be blank and must contain '@'");
-        return normalizedEmail;
-    }
-
-    private static void requireNow(Instant now) {
-        if (now == null)
-            throw new IllegalArgumentException("Now cannot be null");
     }
 }

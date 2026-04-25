@@ -2,8 +2,6 @@ package com.nuwandev.reqflowapi.auth.domain;
 
 import lombok.Getter;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -99,6 +97,11 @@ public class AuthSession {
         return session;
     }
 
+    private static void requireNow(Instant now) {
+        if (now == null)
+            throw new IllegalArgumentException("Now cannot be null");
+    }
+
     public boolean canBeUsedForRefresh(Instant now) {
         requireNow(now);
         return !isRevoked() && !wasReplaced() && !isExpired(now);
@@ -144,10 +147,5 @@ public class AuthSession {
 
     public boolean wasReplaced() {
         return replacedBySessionId != null;
-    }
-
-    private static void requireNow(Instant now) {
-        if (now == null)
-            throw new IllegalArgumentException("Now cannot be null");
     }
 }

@@ -15,6 +15,37 @@ public class JdbcAuthSessionRepository implements AuthSessionRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final RowMapper<AuthSession> authSessionRowMapper = (rs, rowNum) -> {
+        UUID id = rs.getObject("id", UUID.class);
+        UUID tenantId = rs.getObject("tenant_id", UUID.class);
+        UUID userId = rs.getObject("user_id", UUID.class);
+        String refreshTokenHash = rs.getString("refresh_token_hash");
+        java.sql.Timestamp issuedAtTs = rs.getTimestamp("issued_at");
+        Instant issuedAt = issuedAtTs != null ? issuedAtTs.toInstant() : null;
+        java.sql.Timestamp expiresAtTs = rs.getTimestamp("expires_at");
+        Instant expiresAt = expiresAtTs != null ? expiresAtTs.toInstant() : null;
+        java.sql.Timestamp revokedAtTs = rs.getTimestamp("revoked_at");
+        Instant revokedAt = revokedAtTs != null ? revokedAtTs.toInstant() : null;
+        UUID replacedBySessionId = rs.getObject("replaced_by_session_id", UUID.class);
+        if (rs.wasNull()) replacedBySessionId = null;
+        java.sql.Timestamp createdAtTs = rs.getTimestamp("created_at");
+        Instant createdAt = createdAtTs != null ? createdAtTs.toInstant() : null;
+        java.sql.Timestamp updatedAtTs = rs.getTimestamp("updated_at");
+        Instant updatedAt = updatedAtTs != null ? updatedAtTs.toInstant() : null;
+        return AuthSession.reconstruct(
+                id,
+                tenantId,
+                userId,
+                refreshTokenHash,
+                issuedAt,
+                expiresAt,
+                revokedAt,
+                replacedBySessionId,
+                createdAt,
+                updatedAt
+        );
+    };
+
     public JdbcAuthSessionRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -97,36 +128,4 @@ public class JdbcAuthSessionRepository implements AuthSessionRepository {
 
         return jdbcTemplate.query(sql, authSessionRowMapper, tenantId, userId, now);
     }
-
-    private final RowMapper<AuthSession> authSessionRowMapper = (rs, rowNum) -> {
-        UUID id = rs.getObject("id", UUID.class);
-        UUID tenantId = rs.getObject("tenant_id", UUID.class);
-        UUID userId = rs.getObject("user_id", UUID.class);
-        String refreshTokenHash = rs.getString("refresh_token_hash");
-        java.sql.Timestamp issuedAtTs = rs.getTimestamp("issued_at");
-        Instant issuedAt = issuedAtTs != null ? issuedAtTs.toInstant() : null;
-        java.sql.Timestamp expiresAtTs = rs.getTimestamp("expires_at");
-        Instant expiresAt = expiresAtTs != null ? expiresAtTs.toInstant() : null;
-        java.sql.Timestamp revokedAtTs = rs.getTimestamp("revoked_at");
-        Instant revokedAt = revokedAtTs != null ? revokedAtTs.toInstant() : null;
-        UUID replacedBySessionId = rs.getObject("replaced_by_session_id", UUID.class);
-        if (rs.wasNull()) replacedBySessionId = null;
-        java.sql.Timestamp createdAtTs = rs.getTimestamp("created_at");
-        Instant createdAt = createdAtTs != null ? createdAtTs.toInstant() : null;
-        java.sql.Timestamp updatedAtTs = rs.getTimestamp("updated_at");
-        Instant updatedAt = updatedAtTs != null ? updatedAtTs.toInstant() : null;
-        return AuthSession.reconstruct(
-                id,
-                tenantId,
-                userId,
-                refreshTokenHash,
-                issuedAt,
-                expiresAt,
-                revokedAt,
-                replacedBySessionId,
-                createdAt,
-                updatedAt
-        );
-    };
-
 }
