@@ -77,6 +77,8 @@ public class AuthSession {
             throw new IllegalArgumentException("issuedAt cannot be null");
         if (expiresAt == null)
             throw new IllegalArgumentException("expiresAt cannot be null");
+        if (expiresAt.isBefore(issuedAt))
+            throw new IllegalStateException("Invalid session: expires before issued");
         if (createdAt == null)
             throw new IllegalArgumentException("createdAt cannot be null");
         if (updatedAt == null)
