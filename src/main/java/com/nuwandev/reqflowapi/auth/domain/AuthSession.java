@@ -132,9 +132,7 @@ public class AuthSession {
             throw new IllegalStateException("Session is already replaced by another session");
 
         this.replacedBySessionId = newSessionId;
-        if (this.revokedAt == null) {
-            this.revokedAt = now;
-        }
+        this.revokedAt = now;
         this.updatedAt = now;
     }
 
