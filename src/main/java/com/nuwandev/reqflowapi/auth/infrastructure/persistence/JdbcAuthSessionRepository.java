@@ -56,7 +56,7 @@ public class JdbcAuthSessionRepository implements AuthSessionRepository {
               AND replaced_by_session_id IS NULL
             """;
 
-        jdbcTemplate.update(sql,
+        int rows = jdbcTemplate.update(sql,
                 session.getId(),
                 session.getTenantId(),
                 session.getUserId(),
@@ -68,6 +68,9 @@ public class JdbcAuthSessionRepository implements AuthSessionRepository {
                 session.getCreatedAt(),
                 session.getUpdatedAt()
         );
+        if (rows == 0) {
+            throw new IllegalStateException("Concurrent modification detected on auth session");
+        }
     }
 
     @Override
