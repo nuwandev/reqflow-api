@@ -138,15 +138,6 @@ public class AuthSession {
         this.updatedAt = now;
     }
 
-    public boolean matchesToken(String hash) {
-        if (hash == null || hash.isBlank())
-            throw new IllegalArgumentException("Input token hash is null or blank");
-        if (refreshTokenHash == null)
-            throw new IllegalStateException("Session does not have a refresh token hash");
-
-        return MessageDigest.isEqual(hash.getBytes(StandardCharsets.UTF_8), this.refreshTokenHash.getBytes(StandardCharsets.UTF_8));
-    }
-
     public boolean isReuseAttempt() {
         return isRevoked() && wasReplaced();
     }
