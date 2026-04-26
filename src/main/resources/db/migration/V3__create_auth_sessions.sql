@@ -3,6 +3,8 @@ CREATE TABLE auth_sessions (
     tenant_id uuid NOT NULL CONSTRAINT fk_auth_sessions_tenants REFERENCES tenants(id),
     user_id uuid NOT NULL CONSTRAINT fk_auth_sessions_users REFERENCES users(id),
     refresh_token_hash text NOT NULL,
+    ip_address text NULL,
+    user_agent text NULL,
     issued_at timestamptz NOT NULL,
     expires_at timestamptz NOT NULL,
     revoked_at timestamptz NULL,

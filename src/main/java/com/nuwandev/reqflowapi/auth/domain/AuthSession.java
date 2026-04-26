@@ -11,6 +11,8 @@ public class AuthSession {
     private UUID tenantId;
     private UUID userId;
     private String refreshTokenHash;
+    private String ipAddress;
+    private String userAgent;
     private Instant issuedAt;
     private Instant expiresAt;
     private Instant revokedAt;
@@ -22,6 +24,8 @@ public class AuthSession {
             UUID userId,
             UUID tenantId,
             String refreshTokenHash,
+            String ipAddress,
+            String userAgent,
             Instant now,
             Instant expiry
     ) {
@@ -43,6 +47,8 @@ public class AuthSession {
         session.userId = userId;
         session.tenantId = tenantId;
         session.refreshTokenHash = refreshTokenHash;
+        session.ipAddress = normalizeOptional(ipAddress);
+        session.userAgent = normalizeOptional(userAgent);
         session.issuedAt = now;
         session.expiresAt = expiry;
         session.createdAt = now;
@@ -56,6 +62,8 @@ public class AuthSession {
             UUID tenantId,
             UUID userId,
             String refreshTokenHash,
+            String ipAddress,
+            String userAgent,
             Instant issuedAt,
             Instant expiresAt,
             Instant revokedAt,
@@ -87,6 +95,8 @@ public class AuthSession {
         session.tenantId = tenantId;
         session.userId = userId;
         session.refreshTokenHash = refreshTokenHash;
+        session.ipAddress = normalizeOptional(ipAddress);
+        session.userAgent = normalizeOptional(userAgent);
         session.issuedAt = issuedAt;
         session.expiresAt = expiresAt;
         session.revokedAt = revokedAt;
@@ -100,6 +110,14 @@ public class AuthSession {
     private static void requireNow(Instant now) {
         if (now == null)
             throw new IllegalArgumentException("Now cannot be null");
+    }
+
+    private static String normalizeOptional(String value) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim();
+        return normalized.isBlank() ? null : normalized;
     }
 
     public boolean canBeUsedForRefresh(Instant now) {
