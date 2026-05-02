@@ -1,16 +1,21 @@
-CREATE TABLE auth_sessions (
-    id uuid CONSTRAINT pk_auth_sessions PRIMARY KEY,
-    tenant_id uuid NOT NULL CONSTRAINT fk_auth_sessions_tenants REFERENCES tenants(id),
-    user_id uuid NOT NULL CONSTRAINT fk_auth_sessions_users REFERENCES users(id),
-    refresh_token_hash text NOT NULL,
-    ip_address text NULL,
-    user_agent text NULL,
-    issued_at timestamptz NOT NULL,
-    expires_at timestamptz NOT NULL,
-    revoked_at timestamptz NULL,
-    replaced_by_session_id uuid NULL CONSTRAINT fk_auth_sessions_auth_sessions REFERENCES auth_sessions(id) ON DELETE SET NULL,
-    created_at timestamptz NOT NULL,
-    updated_at timestamptz NOT NULL,
+CREATE TABLE auth_sessions
+(
+    id                     uuid
+        CONSTRAINT pk_auth_sessions PRIMARY KEY,
+    tenant_id              uuid        NOT NULL
+        CONSTRAINT fk_auth_sessions_tenants REFERENCES tenants (id),
+    user_id                uuid        NOT NULL
+        CONSTRAINT fk_auth_sessions_users REFERENCES users (id),
+    refresh_token_hash     text        NOT NULL,
+    ip_address             text        NULL,
+    user_agent             text        NULL,
+    issued_at              timestamptz NOT NULL,
+    expires_at             timestamptz NOT NULL,
+    revoked_at             timestamptz NULL,
+    replaced_by_session_id uuid        NULL
+        CONSTRAINT fk_auth_sessions_auth_sessions REFERENCES auth_sessions (id) ON DELETE SET NULL,
+    created_at             timestamptz NOT NULL,
+    updated_at             timestamptz NOT NULL,
     CONSTRAINT chk_auth_sessions_expires_after_issued CHECK (expires_at > issued_at)
 );
 
