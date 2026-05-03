@@ -1,4 +1,4 @@
-package com.nuwandev.reqflowapi.auth.domain;
+package com.nuwandev.reqflowapi.auth.application.port.output;
 
 public interface TokenHasher {
     String hash(String raw);
