@@ -1,11 +1,9 @@
 package com.nuwandev.reqflowapi.shared.response;
 
-import com.nuwandev.reqflowapi.auth.domain.exception.InactiveUserException;
-import com.nuwandev.reqflowapi.auth.domain.exception.InvalidCredentialsException;
-import com.nuwandev.reqflowapi.auth.domain.exception.InvalidRefreshTokenException;
-import com.nuwandev.reqflowapi.auth.domain.exception.RefreshTokenReuseDetectedException;
-import com.nuwandev.reqflowapi.shared.response.ErrorDetail;
-import com.nuwandev.reqflowapi.shared.response.ErrorEnvelope;
+import com.nuwandev.reqflowapi.identity.domain.exception.InactiveUserException;
+import com.nuwandev.reqflowapi.identity.domain.exception.InvalidCredentialsException;
+import com.nuwandev.reqflowapi.identity.domain.exception.InvalidRefreshTokenException;
+import com.nuwandev.reqflowapi.identity.domain.exception.RefreshTokenReuseDetectedException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
