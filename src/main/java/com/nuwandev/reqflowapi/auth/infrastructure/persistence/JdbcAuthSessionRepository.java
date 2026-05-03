@@ -1,7 +1,9 @@
 package com.nuwandev.reqflowapi.auth.infrastructure.persistence;
 
-import com.nuwandev.reqflowapi.auth.domain.AuthSession;
-import com.nuwandev.reqflowapi.auth.domain.AuthSessionRepository;
+import com.nuwandev.reqflowapi.auth.infrastructure.persistence.mapper.AuthSessionMapper;
+import com.nuwandev.reqflowapi.auth.domain.model.AuthSession;
+import com.nuwandev.reqflowapi.auth.domain.repository.AuthSessionRepository;
+import com.nuwandev.reqflowapi.auth.infrastructure.persistence.entity.AuthSessionEntity;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -16,44 +18,35 @@ import java.util.UUID;
 public class JdbcAuthSessionRepository implements AuthSessionRepository {
 
     private final JdbcTemplate jdbcTemplate;
+    private final AuthSessionMapper authSessionMapper;
 
-    private final RowMapper<AuthSession> authSessionRowMapper = (rs, rowNum) -> {
-        UUID id = rs.getObject("id", UUID.class);
-        UUID tenantId = rs.getObject("tenant_id", UUID.class);
-        UUID userId = rs.getObject("user_id", UUID.class);
-        String refreshTokenHash = rs.getString("refresh_token_hash");
-        String ipAddress = rs.getString("ip_address");
-        String userAgent = rs.getString("user_agent");
+    private final RowMapper<AuthSessionEntity> authSessionRowMapper = (rs, rowNum) -> {
+        AuthSessionEntity entity = new AuthSessionEntity();
+        entity.setId(rs.getObject("id", UUID.class));
+        entity.setTenantId(rs.getObject("tenant_id", UUID.class));
+        entity.setUserId(rs.getObject("user_id", UUID.class));
+        entity.setRefreshTokenHash(rs.getString("refresh_token_hash"));
+        entity.setIpAddress(rs.getString("ip_address"));
+        entity.setUserAgent(rs.getString("user_agent"));
         java.sql.Timestamp issuedAtTs = rs.getTimestamp("issued_at");
-        Instant issuedAt = issuedAtTs != null ? issuedAtTs.toInstant() : null;
+        entity.setIssuedAt(issuedAtTs != null ? issuedAtTs.toInstant() : null);
         java.sql.Timestamp expiresAtTs = rs.getTimestamp("expires_at");
-        Instant expiresAt = expiresAtTs != null ? expiresAtTs.toInstant() : null;
+        entity.setExpiresAt(expiresAtTs != null ? expiresAtTs.toInstant() : null);
         java.sql.Timestamp revokedAtTs = rs.getTimestamp("revoked_at");
-        Instant revokedAt = revokedAtTs != null ? revokedAtTs.toInstant() : null;
+        entity.setRevokedAt(revokedAtTs != null ? revokedAtTs.toInstant() : null);
         UUID replacedBySessionId = rs.getObject("replaced_by_session_id", UUID.class);
         if (rs.wasNull()) replacedBySessionId = null;
+        entity.setReplacedBySessionId(replacedBySessionId);
         java.sql.Timestamp createdAtTs = rs.getTimestamp("created_at");
-        Instant createdAt = createdAtTs != null ? createdAtTs.toInstant() : null;
+        entity.setCreatedAt(createdAtTs != null ? createdAtTs.toInstant() : null);
         java.sql.Timestamp updatedAtTs = rs.getTimestamp("updated_at");
-        Instant updatedAt = updatedAtTs != null ? updatedAtTs.toInstant() : null;
-        return AuthSession.reconstruct(
-                id,
-                tenantId,
-                userId,
-                refreshTokenHash,
-                ipAddress,
-                userAgent,
-                issuedAt,
-                expiresAt,
-                revokedAt,
-                replacedBySessionId,
-                createdAt,
-                updatedAt
-        );
+        entity.setUpdatedAt(updatedAtTs != null ? updatedAtTs.toInstant() : null);
+        return entity;
     };
 
-    public JdbcAuthSessionRepository(JdbcTemplate jdbcTemplate) {
+    public JdbcAuthSessionRepository(JdbcTemplate jdbcTemplate, AuthSessionMapper authSessionMapper) {
         this.jdbcTemplate = jdbcTemplate;
+        this.authSessionMapper = authSessionMapper;
     }
 
     @Override
@@ -64,8 +57,9 @@ public class JdbcAuthSessionRepository implements AuthSessionRepository {
                 WHERE tenant_id = ? AND id = ?
                 """;
 
-        List<AuthSession> sessions = jdbcTemplate.query(sql, authSessionRowMapper, tenantId, sessionId);
-        return Optional.ofNullable(DataAccessUtils.singleResult(sessions));
+        List<AuthSessionEntity> sessions = jdbcTemplate.query(sql, authSessionRowMapper, tenantId, sessionId);
+        AuthSessionEntity entity = DataAccessUtils.singleResult(sessions);
+        return Optional.ofNullable(entity).map(authSessionMapper::toDomain);
     }
 
     @Override
@@ -77,8 +71,9 @@ public class JdbcAuthSessionRepository implements AuthSessionRepository {
                 FOR UPDATE
                 """;
 
-        List<AuthSession> sessions = jdbcTemplate.query(sql, authSessionRowMapper, hash);
-        return Optional.ofNullable(DataAccessUtils.singleResult(sessions));
+        List<AuthSessionEntity> sessions = jdbcTemplate.query(sql, authSessionRowMapper, hash);
+        AuthSessionEntity entity = DataAccessUtils.singleResult(sessions);
+        return Optional.ofNullable(entity).map(authSessionMapper::toDomain);
     }
 
     @Override
@@ -106,19 +101,20 @@ public class JdbcAuthSessionRepository implements AuthSessionRepository {
                     updated_at = EXCLUDED.updated_at
                 """;
 
+        AuthSessionEntity entity = authSessionMapper.toEntity(session);
         int rows = jdbcTemplate.update(sql,
-                session.getId(),
-                session.getTenantId(),
-                session.getUserId(),
-                session.getRefreshTokenHash(),
-                session.getIpAddress(),
-                session.getUserAgent(),
-                session.getIssuedAt(),
-                session.getExpiresAt(),
-                session.getRevokedAt(),
-                session.getReplacedBySessionId(),
-                session.getCreatedAt(),
-                session.getUpdatedAt()
+                entity.getId(),
+                entity.getTenantId(),
+                entity.getUserId(),
+                entity.getRefreshTokenHash(),
+                entity.getIpAddress(),
+                entity.getUserAgent(),
+                entity.getIssuedAt(),
+                entity.getExpiresAt(),
+                entity.getRevokedAt(),
+                entity.getReplacedBySessionId(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt()
         );
         if (rows == 0) {
             throw new IllegalStateException("Concurrent modification detected on auth session");

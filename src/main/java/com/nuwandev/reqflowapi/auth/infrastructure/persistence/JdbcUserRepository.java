@@ -1,8 +1,9 @@
 package com.nuwandev.reqflowapi.auth.infrastructure.persistence;
 
-import com.nuwandev.reqflowapi.auth.domain.User;
-import com.nuwandev.reqflowapi.auth.domain.UserRepository;
-import com.nuwandev.reqflowapi.auth.domain.UserRole;
+import com.nuwandev.reqflowapi.auth.infrastructure.persistence.mapper.UserMapper;
+import com.nuwandev.reqflowapi.auth.domain.model.User;
+import com.nuwandev.reqflowapi.auth.domain.repository.UserRepository;
+import com.nuwandev.reqflowapi.auth.infrastructure.persistence.entity.UserEntity;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -17,40 +18,27 @@ import java.util.UUID;
 public class JdbcUserRepository implements UserRepository {
 
     private final JdbcTemplate jdbcTemplate;
+    private final UserMapper userMapper;
 
-    private final RowMapper<User> userRowMapper = (rs, rowNum) -> {
-        UUID id = (UUID) rs.getObject("id");
-        UUID tenantId = (UUID) rs.getObject("tenant_id");
-        String email = rs.getString("email");
-        String passwordHash = rs.getString("password_hash");
-        String fullName = rs.getString("full_name");
-        String roleStr = rs.getString("role");
-        boolean isActive = rs.getBoolean("is_active");
-        Instant createdAt = rs.getTimestamp("created_at").toInstant();
-        Instant updatedAt = rs.getTimestamp("updated_at").toInstant();
-        UserRole role;
-        try {
-            role = UserRole.valueOf(roleStr);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalStateException("Invalid user role in DB: " + roleStr, e);
-        }
-
-        return User.reconstruct(
-                id,
-                tenantId,
-                email,
-                passwordHash,
-                fullName,
-                role,
-                isActive,
-                createdAt,
-                updatedAt
-        );
+    private final RowMapper<UserEntity> userRowMapper = (rs, rowNum) -> {
+        UserEntity entity = new UserEntity();
+        entity.setId((UUID) rs.getObject("id"));
+        entity.setTenantId((UUID) rs.getObject("tenant_id"));
+        entity.setEmail(rs.getString("email"));
+        entity.setPasswordHash(rs.getString("password_hash"));
+        entity.setFullName(rs.getString("full_name"));
+        entity.setRole(rs.getString("role"));
+        entity.setActive(rs.getBoolean("is_active"));
+        entity.setCreatedAt(rs.getTimestamp("created_at").toInstant());
+        entity.setUpdatedAt(rs.getTimestamp("updated_at").toInstant());
+        return entity;
     };
 
-    public JdbcUserRepository(JdbcTemplate jdbcTemplate) {
+    public JdbcUserRepository(JdbcTemplate jdbcTemplate, UserMapper userMapper) {
         this.jdbcTemplate = jdbcTemplate;
+        this.userMapper = userMapper;
     }
+
 
     @Override
     public Optional<User> findByEmail(UUID tenantId, String email) {
@@ -95,21 +83,23 @@ public class JdbcUserRepository implements UserRepository {
                      updated_at = EXCLUDED.updated_at
                 """;
 
+        UserEntity entity = userMapper.toEntity(user);
         jdbcTemplate.update(sql,
-                user.getId(),
-                user.getTenantId(),
-                user.getEmail(),
-                user.getPasswordHash(),
-                user.getFullName(),
-                user.getRole().name(),
-                user.isActive(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()
+                entity.getId(),
+                entity.getTenantId(),
+                entity.getEmail(),
+                entity.getPasswordHash(),
+                entity.getFullName(),
+                entity.getRole(),
+                entity.isActive(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt()
         );
     }
 
     private Optional<User> queryForOptional(String sql, Object... args) {
-        List<User> results = jdbcTemplate.query(sql, userRowMapper, args);
-        return Optional.ofNullable(DataAccessUtils.singleResult(results));
+        List<UserEntity> results = jdbcTemplate.query(sql, userRowMapper, args);
+        UserEntity entity = DataAccessUtils.singleResult(results);
+        return Optional.ofNullable(entity).map(userMapper::toDomain);
     }
 }
