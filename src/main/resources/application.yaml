@@ -1,6 +1,6 @@
 spring:
   config:
-    import: "optional:file:.env[.properties]"
+    import: "file:.env[.properties]"
 
   application:
     name: reqflow-api
@@ -19,3 +19,15 @@ spring:
   threads:
     virtual:
       enabled: true
+
+auth:
+  access-token-ttl-seconds: ${AUTH_ACCESS_TOKEN_TTL_SECONDS}
+  refresh-token-ttl-seconds: ${AUTH_REFRESH_TOKEN_TTL_SECONDS}
+  jwt-clock-skew-seconds: ${AUTH_JWT_CLOCK_SKEW_SECONDS}
+  rate-limit:
+    login-per-window: ${AUTH_RATE_LIMIT_LOGIN_PER_WINDOW}
+    refresh-per-window: ${AUTH_RATE_LIMIT_REFRESH_PER_WINDOW}
+    window-seconds: ${AUTH_RATE_LIMIT_WINDOW_SECONDS}
+  jwt:
+    issuer: ${AUTH_JWT_ISSUER}
+    secret: ${AUTH_JWT_SECRET}
