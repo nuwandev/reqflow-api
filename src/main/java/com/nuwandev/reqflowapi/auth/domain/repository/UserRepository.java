@@ -1,4 +1,6 @@
-package com.nuwandev.reqflowapi.auth.domain;
+package com.nuwandev.reqflowapi.auth.domain.repository;
+
+import com.nuwandev.reqflowapi.auth.domain.model.User;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -11,3 +13,4 @@ public interface UserRepository {
 
     void save(User user);
 }
+

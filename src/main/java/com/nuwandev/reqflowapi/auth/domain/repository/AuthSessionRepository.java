@@ -1,4 +1,6 @@
-package com.nuwandev.reqflowapi.auth.domain;
+package com.nuwandev.reqflowapi.auth.domain.repository;
+
+import com.nuwandev.reqflowapi.auth.domain.model.AuthSession;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -14,3 +16,4 @@ public interface AuthSessionRepository {
 
     void revokeAllByUserId(UUID tenantId, UUID userId, Instant now);
 }
+
