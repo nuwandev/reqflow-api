@@ -1,11 +1,8 @@
-package com.nuwandev.reqflowapi.auth.domain;
-
-import lombok.Getter;
+package com.nuwandev.reqflowapi.auth.domain.model;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Getter
 public class User {
     private UUID id;
     private UUID tenantId;
@@ -103,6 +100,24 @@ public class User {
             throw new IllegalArgumentException("Now cannot be null");
     }
 
+    public UUID getId() { return id; }
+
+    public UUID getTenantId() { return tenantId; }
+
+    public String getEmail() { return email; }
+
+    public String getPasswordHash() { return passwordHash; }
+
+    public String getFullName() { return fullName; }
+
+    public UserRole getRole() { return role; }
+
+    public boolean isActive() { return isActive; }
+
+    public Instant getCreatedAt() { return createdAt; }
+
+    public Instant getUpdatedAt() { return updatedAt; }
+
     public void deactivate(Instant now) {
         requireNow(now);
         if (this.isActive) {
@@ -141,3 +156,4 @@ public class User {
         this.updatedAt = now;
     }
 }
+

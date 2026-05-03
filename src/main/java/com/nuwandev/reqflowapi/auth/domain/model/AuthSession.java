@@ -1,11 +1,8 @@
-package com.nuwandev.reqflowapi.auth.domain;
-
-import lombok.Getter;
+package com.nuwandev.reqflowapi.auth.domain.model;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Getter
 public class AuthSession {
     private UUID id;
     private UUID tenantId;
@@ -120,6 +117,30 @@ public class AuthSession {
         return normalized.isBlank() ? null : normalized;
     }
 
+    public UUID getId() { return id; }
+
+    public UUID getTenantId() { return tenantId; }
+
+    public UUID getUserId() { return userId; }
+
+    public String getRefreshTokenHash() { return refreshTokenHash; }
+
+    public String getIpAddress() { return ipAddress; }
+
+    public String getUserAgent() { return userAgent; }
+
+    public Instant getIssuedAt() { return issuedAt; }
+
+    public Instant getExpiresAt() { return expiresAt; }
+
+    public Instant getRevokedAt() { return revokedAt; }
+
+    public UUID getReplacedBySessionId() { return replacedBySessionId; }
+
+    public Instant getCreatedAt() { return createdAt; }
+
+    public Instant getUpdatedAt() { return updatedAt; }
+
     public boolean canBeUsedForRefresh(Instant now) {
         requireNow(now);
         return !isRevoked() && !wasReplaced() && !isExpired(now);
@@ -167,3 +188,4 @@ public class AuthSession {
         return replacedBySessionId != null;
     }
 }
+

@@ -1,4 +1,4 @@
-package com.nuwandev.reqflowapi.auth.domain;
+package com.nuwandev.reqflowapi.auth.domain.model;
 
 public enum UserRole {
     /**
@@ -21,3 +21,4 @@ public enum UserRole {
      */
     ADMIN,
 }
+
