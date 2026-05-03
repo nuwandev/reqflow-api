@@ -100,23 +100,41 @@ public class User {
             throw new IllegalArgumentException("Now cannot be null");
     }
 
-    public UUID getId() { return id; }
+    public UUID getId() {
+        return id;
+    }
 
-    public UUID getTenantId() { return tenantId; }
+    public UUID getTenantId() {
+        return tenantId;
+    }
 
-    public String getEmail() { return email; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getPasswordHash() { return passwordHash; }
+    public String getPasswordHash() {
+        return passwordHash;
+    }
 
-    public String getFullName() { return fullName; }
+    public String getFullName() {
+        return fullName;
+    }
 
-    public UserRole getRole() { return role; }
+    public UserRole getRole() {
+        return role;
+    }
 
-    public boolean isActive() { return isActive; }
+    public boolean isActive() {
+        return isActive;
+    }
 
-    public Instant getCreatedAt() { return createdAt; }
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 
-    public Instant getUpdatedAt() { return updatedAt; }
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
 
     public void deactivate(Instant now) {
         requireNow(now);

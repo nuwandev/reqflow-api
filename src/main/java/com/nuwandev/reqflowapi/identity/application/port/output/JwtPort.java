@@ -7,8 +7,8 @@ import java.util.UUID;
 
 public interface JwtPort {
 
-	String generateAccessToken(UUID tenantId, User user, Instant now);
+    String generateAccessToken(UUID tenantId, User user, Instant now);
 
-	AuthenticatedUser parseAndValidate(String token, Instant now);
+    AuthenticatedUser parseAndValidate(String token, Instant now);
 }
 

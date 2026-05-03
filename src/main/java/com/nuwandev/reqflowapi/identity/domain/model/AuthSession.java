@@ -117,29 +117,53 @@ public class AuthSession {
         return normalized.isBlank() ? null : normalized;
     }
 
-    public UUID getId() { return id; }
+    public UUID getId() {
+        return id;
+    }
 
-    public UUID getTenantId() { return tenantId; }
+    public UUID getTenantId() {
+        return tenantId;
+    }
 
-    public UUID getUserId() { return userId; }
+    public UUID getUserId() {
+        return userId;
+    }
 
-    public String getRefreshTokenHash() { return refreshTokenHash; }
+    public String getRefreshTokenHash() {
+        return refreshTokenHash;
+    }
 
-    public String getIpAddress() { return ipAddress; }
+    public String getIpAddress() {
+        return ipAddress;
+    }
 
-    public String getUserAgent() { return userAgent; }
+    public String getUserAgent() {
+        return userAgent;
+    }
 
-    public Instant getIssuedAt() { return issuedAt; }
+    public Instant getIssuedAt() {
+        return issuedAt;
+    }
 
-    public Instant getExpiresAt() { return expiresAt; }
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
 
-    public Instant getRevokedAt() { return revokedAt; }
+    public Instant getRevokedAt() {
+        return revokedAt;
+    }
 
-    public UUID getReplacedBySessionId() { return replacedBySessionId; }
+    public UUID getReplacedBySessionId() {
+        return replacedBySessionId;
+    }
 
-    public Instant getCreatedAt() { return createdAt; }
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 
-    public Instant getUpdatedAt() { return updatedAt; }
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
 
     public boolean canBeUsedForRefresh(Instant now) {
         requireNow(now);

@@ -1,9 +1,9 @@
 package com.nuwandev.reqflowapi.identity.infrastructure.persistence;
 
-import com.nuwandev.reqflowapi.identity.infrastructure.persistence.mapper.AuthSessionMapper;
 import com.nuwandev.reqflowapi.identity.domain.model.AuthSession;
 import com.nuwandev.reqflowapi.identity.domain.repository.AuthSessionRepository;
 import com.nuwandev.reqflowapi.identity.infrastructure.persistence.entity.AuthSessionEntity;
+import com.nuwandev.reqflowapi.identity.infrastructure.persistence.mapper.AuthSessionMapper;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;

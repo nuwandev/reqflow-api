@@ -8,7 +8,6 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-
 import com.nuwandev.reqflowapi.identity.application.port.output.AuthenticatedUser;
 import com.nuwandev.reqflowapi.identity.application.port.output.JwtPort;
 import com.nuwandev.reqflowapi.identity.domain.model.User;
