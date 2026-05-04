@@ -3,7 +3,10 @@ package com.nuwandev.reqflowapi.identity.application.service;
 import com.nuwandev.reqflowapi.identity.application.port.input.AuthTokens;
 import com.nuwandev.reqflowapi.identity.application.port.input.LoginCommand;
 import com.nuwandev.reqflowapi.identity.application.port.input.LoginUseCase;
-import com.nuwandev.reqflowapi.identity.application.port.output.*;
+import com.nuwandev.reqflowapi.identity.application.port.output.JwtPort;
+import com.nuwandev.reqflowapi.identity.application.port.output.PasswordHasherPort;
+import com.nuwandev.reqflowapi.identity.application.port.output.RefreshTokenGenerator;
+import com.nuwandev.reqflowapi.identity.application.port.output.TokenHasher;
 import com.nuwandev.reqflowapi.identity.domain.exception.InactiveUserException;
 import com.nuwandev.reqflowapi.identity.domain.exception.InvalidCredentialsException;
 import com.nuwandev.reqflowapi.identity.domain.model.AuthSession;
@@ -26,7 +29,6 @@ public class LoginService implements LoginUseCase {
     private final JwtPort jwtPort;
     private final RefreshTokenGenerator refreshTokenGenerator;
     private final TokenHasher tokenHasher;
-    private final AuthAuditLogger authAuditLogger;
     private final Clock clock;
     private final long refreshTokenTtlSeconds;
 
@@ -37,7 +39,6 @@ public class LoginService implements LoginUseCase {
             JwtPort jwtPort,
             RefreshTokenGenerator refreshTokenGenerator,
             TokenHasher tokenHasher,
-            AuthAuditLogger authAuditLogger,
             Clock clock,
             @Value("${auth.refresh-token-ttl-seconds:2592000}") long refreshTokenTtlSeconds
     ) {
@@ -47,7 +48,6 @@ public class LoginService implements LoginUseCase {
         this.jwtPort = jwtPort;
         this.refreshTokenGenerator = refreshTokenGenerator;
         this.tokenHasher = tokenHasher;
-        this.authAuditLogger = authAuditLogger;
         this.clock = clock;
         this.refreshTokenTtlSeconds = refreshTokenTtlSeconds;
     }
@@ -74,16 +74,13 @@ public class LoginService implements LoginUseCase {
 
         User user = userRepository.findByEmail(command.tenantId(), command.email())
                 .orElseThrow(() -> {
-                    authAuditLogger.loginFailed(command.tenantId(), command.email(), command.ip(), command.userAgent(), "user_not_found");
                     return new InvalidCredentialsException();
                 });
 
         if (!user.isActive()) {
-            authAuditLogger.loginFailed(command.tenantId(), command.email(), command.ip(), command.userAgent(), "user_inactive");
             throw new InactiveUserException();
         }
         if (!passwordHasher.matches(command.password(), user.getPasswordHash())) {
-            authAuditLogger.loginFailed(command.tenantId(), command.email(), command.ip(), command.userAgent(), "password_mismatch");
             throw new InvalidCredentialsException();
         }
 
@@ -100,7 +97,6 @@ public class LoginService implements LoginUseCase {
                 now.plusSeconds(refreshTokenTtlSeconds)
         );
         authSessionRepository.save(session);
-        authAuditLogger.loginSucceeded(command.tenantId(), user.getId(), user.getEmail(), command.ip(), command.userAgent());
 
         return new AuthTokens(
                 jwtPort.generateAccessToken(command.tenantId(), user, now),

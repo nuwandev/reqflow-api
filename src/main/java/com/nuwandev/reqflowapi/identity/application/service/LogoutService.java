@@ -2,7 +2,6 @@ package com.nuwandev.reqflowapi.identity.application.service;
 
 import com.nuwandev.reqflowapi.identity.application.port.input.LogoutCommand;
 import com.nuwandev.reqflowapi.identity.application.port.input.LogoutUseCase;
-import com.nuwandev.reqflowapi.identity.application.port.output.AuthAuditLogger;
 import com.nuwandev.reqflowapi.identity.domain.repository.AuthSessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,12 +13,10 @@ import java.time.Instant;
 public class LogoutService implements LogoutUseCase {
 
     private final AuthSessionRepository authSessionRepository;
-    private final AuthAuditLogger authAuditLogger;
     private final Clock clock;
 
-    public LogoutService(AuthSessionRepository authSessionRepository, AuthAuditLogger authAuditLogger, Clock clock) {
+    public LogoutService(AuthSessionRepository authSessionRepository, Clock clock) {
         this.authSessionRepository = authSessionRepository;
-        this.authAuditLogger = authAuditLogger;
         this.clock = clock;
     }
 
@@ -44,7 +41,6 @@ public class LogoutService implements LogoutUseCase {
                 command.userId(),
                 Instant.now(clock)
         );
-        authAuditLogger.logoutSucceeded(command.tenantId(), command.userId());
     }
 }
 

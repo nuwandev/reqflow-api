@@ -3,7 +3,6 @@ package com.nuwandev.reqflowapi.identity.application.service;
 import com.nuwandev.reqflowapi.identity.application.port.input.AuthTokens;
 import com.nuwandev.reqflowapi.identity.application.port.input.RefreshTokenCommand;
 import com.nuwandev.reqflowapi.identity.application.port.input.RefreshTokenUseCase;
-import com.nuwandev.reqflowapi.identity.application.port.output.AuthAuditLogger;
 import com.nuwandev.reqflowapi.identity.application.port.output.JwtPort;
 import com.nuwandev.reqflowapi.identity.application.port.output.RefreshTokenGenerator;
 import com.nuwandev.reqflowapi.identity.application.port.output.TokenHasher;
@@ -29,7 +28,6 @@ public class RefreshTokenService implements RefreshTokenUseCase {
     private final JwtPort jwtPort;
     private final RefreshTokenGenerator refreshTokenGenerator;
     private final TokenHasher tokenHasher;
-    private final AuthAuditLogger authAuditLogger;
     private final Clock clock;
     private final long refreshTokenTtlSeconds;
 
@@ -39,7 +37,6 @@ public class RefreshTokenService implements RefreshTokenUseCase {
             JwtPort jwtPort,
             RefreshTokenGenerator refreshTokenGenerator,
             TokenHasher tokenHasher,
-            AuthAuditLogger authAuditLogger,
             Clock clock,
             @Value("${auth.refresh-token-ttl-seconds:2592000}") long refreshTokenTtlSeconds
     ) {
@@ -48,7 +45,6 @@ public class RefreshTokenService implements RefreshTokenUseCase {
         this.jwtPort = jwtPort;
         this.refreshTokenGenerator = refreshTokenGenerator;
         this.tokenHasher = tokenHasher;
-        this.authAuditLogger = authAuditLogger;
         this.clock = clock;
         this.refreshTokenTtlSeconds = refreshTokenTtlSeconds;
     }
@@ -90,11 +86,9 @@ public class RefreshTokenService implements RefreshTokenUseCase {
 
         if (!session.canBeUsedForRefresh(now)) {
             if (session.isReuseAttempt()) {
-                authAuditLogger.refreshReuseDetected(tenantId, session.getUserId(), session.getIpAddress(), session.getUserAgent());
                 revokeSessionChain(tenantId, session, now);
                 throw new RefreshTokenReuseDetectedException();
             }
-            authAuditLogger.refreshFailed("session_not_usable");
             throw new InvalidRefreshTokenException();
         }
 
@@ -102,7 +96,6 @@ public class RefreshTokenService implements RefreshTokenUseCase {
                 .orElseThrow(InvalidRefreshTokenException::new);
 
         if (!user.isActive()) {
-            authAuditLogger.refreshFailed("user_inactive");
             authSessionRepository.revokeAllByUserId(tenantId, user.getId(), now);
             throw new InactiveUserException();
         }
@@ -122,7 +115,6 @@ public class RefreshTokenService implements RefreshTokenUseCase {
         session.rotate(newSession.getId(), now);
         authSessionRepository.save(session);
         authSessionRepository.save(newSession);
-        authAuditLogger.refreshSucceeded(tenantId, user.getId(), session.getIpAddress(), session.getUserAgent());
 
         return new AuthTokens(
                 jwtPort.generateAccessToken(tenantId, user, now),

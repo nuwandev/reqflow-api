@@ -1,7 +1,6 @@
 package com.nuwandev.reqflowapi.identity.infrastructure.security;
 
 
-import com.nuwandev.reqflowapi.identity.application.port.output.AuthAuditLogger;
 import com.nuwandev.reqflowapi.identity.application.port.output.AuthenticatedUser;
 import com.nuwandev.reqflowapi.identity.application.port.output.JwtPort;
 import jakarta.servlet.FilterChain;
@@ -27,18 +26,15 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtPort jwtPort;
     private final AuthenticationEntryPoint authenticationEntryPoint;
-    private final AuthAuditLogger authAuditLogger;
     private final Clock clock;
 
     public BearerTokenAuthenticationFilter(
             JwtPort jwtPort,
             AuthenticationEntryPoint authenticationEntryPoint,
-            AuthAuditLogger authAuditLogger,
             Clock clock
     ) {
         this.jwtPort = jwtPort;
         this.authenticationEntryPoint = authenticationEntryPoint;
-        this.authAuditLogger = authAuditLogger;
         this.clock = clock;
     }
 
@@ -66,7 +62,6 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (InvalidAccessTokenException ex) {
             SecurityContextHolder.clearContext();
-            authAuditLogger.accessTokenRejected(ex.getMessage(), request.getRequestURI(), request.getRemoteAddr());
             authenticationEntryPoint.commence(
                     request,
                     response,
