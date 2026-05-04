@@ -52,7 +52,6 @@ public class AuthController {
                 httpRequest.getHeader("User-Agent")
         ));
 
-        // Set refresh token in HttpOnly cookie (controller is responsible for transport concerns)
         String cookieValue = tokens.refreshToken();
         String cookie = String.format(
                 "reqflow_refresh=%s; HttpOnly; Secure; SameSite=Lax; Path=/api/v1/auth; Max-Age=%d",
@@ -83,7 +82,6 @@ public class AuthController {
 
         AuthTokens tokens = refreshTokenUseCase.execute(new RefreshTokenCommand(refreshToken));
 
-        // Set new refresh token in cookie (rotation)
         String cookie = String.format(
                 "reqflow_refresh=%s; HttpOnly; Secure; SameSite=Lax; Path=/api/v1/auth; Max-Age=%d",
                 tokens.refreshToken(),
@@ -102,7 +100,6 @@ public class AuthController {
                 authContext.currentUserId()
         ));
 
-        // Clear the refresh cookie on logout
         String cookie = "reqflow_refresh=; HttpOnly; Secure; SameSite=Lax; Path=/api/v1/auth; Max-Age=0";
         httpResponse.addHeader("Set-Cookie", cookie);
     }

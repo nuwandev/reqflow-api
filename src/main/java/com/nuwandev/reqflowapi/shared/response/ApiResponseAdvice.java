@@ -19,19 +19,16 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {
-        // Apply to all controller methods returning objects
         return true;
     }
 
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
                                   Class selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-        // Ignore null (204 No Content responses)
         if (body == null) {
             return null;
         }
 
-        // Skip if already wrapped
         if (body instanceof SuccessEnvelope) {
             return body;
         }
@@ -40,7 +37,6 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
             return body;
         }
 
-        // Wrap all other responses in success envelope
         String traceId = getTraceId();
         String timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
         return new SuccessEnvelope<>(body, new Meta(traceId, timestamp));
