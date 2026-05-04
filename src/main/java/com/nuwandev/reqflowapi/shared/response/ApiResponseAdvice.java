@@ -54,6 +54,7 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
             if (attr instanceof String s && !s.isBlank()) {
                 return s;
             }
+
             String header = req.getHeader(TraceIdFilter.TRACE_ID_HEADER);
             if (header != null && !header.isBlank()) {
                 return header;
