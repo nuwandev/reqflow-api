@@ -19,11 +19,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class AuthRateLimitFilter extends OncePerRequestFilter {
 
+    private static final int CLEANUP_EVERY = 200;
+
     private final Clock clock;
     private final int loginLimit;
     private final int refreshLimit;
     private final long windowSeconds;
     private final Map<String, WindowCounter> counters = new ConcurrentHashMap<>();
+    private final AtomicInteger cleanupTicker = new AtomicInteger(0);
 
     public AuthRateLimitFilter(
             Clock clock,
@@ -68,6 +71,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     private boolean tryConsume(String action, String clientKey, int limit) {
         Instant now = Instant.now(clock);
+        maybeCleanup(now);
         String bucketKey = action + ":" + clientKey;
         WindowCounter counter = counters.compute(bucketKey, (key, existing) -> {
             if (existing == null || existing.windowEndsAt.isBefore(now)) {
@@ -78,6 +82,13 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
         int current = counter.count.incrementAndGet();
         return current <= limit;
+    }
+
+    private void maybeCleanup(Instant now) {
+        if (cleanupTicker.incrementAndGet() % CLEANUP_EVERY != 0) {
+            return;
+        }
+        counters.entrySet().removeIf(entry -> entry.getValue().windowEndsAt.isBefore(now));
     }
 
     private String resolveClientKey(HttpServletRequest request) {

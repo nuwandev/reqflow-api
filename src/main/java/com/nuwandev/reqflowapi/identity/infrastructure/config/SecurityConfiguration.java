@@ -36,10 +36,10 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
-                        .requestMatchers("/api/v1/auth/logout").authenticated()
+                        .requestMatchers("/api/v1/auth/logout", "/api/v1/auth/me").authenticated()
                         .anyRequest().denyAll()
                 )
-                .addFilterBefore(authRateLimitFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterBefore(authRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(bearerTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

@@ -36,6 +36,10 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
             return body;
         }
 
+        if (body instanceof ErrorEnvelope) {
+            return body;
+        }
+
         // Wrap all other responses in success envelope
         String traceId = getTraceId();
         String timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
@@ -58,4 +62,3 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
         return UUID.randomUUID().toString();
     }
 }
-
