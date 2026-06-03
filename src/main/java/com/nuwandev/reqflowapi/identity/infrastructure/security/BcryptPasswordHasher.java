@@ -1,6 +1,6 @@
 package com.nuwandev.reqflowapi.identity.infrastructure.security;
 
-import com.nuwandev.reqflowapi.identity.application.port.output.PasswordHasherPort;
+import com.nuwandev.reqflowapi.identity.domain.port.PasswordHasherPort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 

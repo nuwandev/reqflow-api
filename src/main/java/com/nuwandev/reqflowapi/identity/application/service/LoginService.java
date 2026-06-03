@@ -4,10 +4,10 @@ import com.nuwandev.reqflowapi.identity.application.port.input.AuthTokens;
 import com.nuwandev.reqflowapi.identity.application.port.input.LoginCommand;
 import com.nuwandev.reqflowapi.identity.application.port.input.LoginUseCase;
 import com.nuwandev.reqflowapi.identity.application.port.output.JwtPort;
-import com.nuwandev.reqflowapi.identity.application.port.output.PasswordHasherPort;
-import com.nuwandev.reqflowapi.identity.application.port.output.RefreshTokenGenerator;
-import com.nuwandev.reqflowapi.identity.application.port.output.TokenHasher;
-import com.nuwandev.reqflowapi.identity.domain.exception.InactiveUserException;
+import com.nuwandev.reqflowapi.identity.domain.port.PasswordHasherPort;
+import com.nuwandev.reqflowapi.identity.domain.port.RefreshTokenGenerator;
+import com.nuwandev.reqflowapi.identity.domain.port.TokenHasher;
+import com.nuwandev.reqflowapi.identity.domain.service.LoginPolicy;
 import com.nuwandev.reqflowapi.identity.domain.exception.InvalidCredentialsException;
 import com.nuwandev.reqflowapi.identity.domain.model.AuthSession;
 import com.nuwandev.reqflowapi.identity.domain.model.User;
@@ -25,7 +25,7 @@ public class LoginService implements LoginUseCase {
 
     private final UserRepository userRepository;
     private final AuthSessionRepository authSessionRepository;
-    private final PasswordHasherPort passwordHasher;
+    private final LoginPolicy loginPolicy;
     private final JwtPort jwtPort;
     private final RefreshTokenGenerator refreshTokenGenerator;
     private final TokenHasher tokenHasher;
@@ -35,7 +35,7 @@ public class LoginService implements LoginUseCase {
     public LoginService(
             UserRepository userRepository,
             AuthSessionRepository authSessionRepository,
-            PasswordHasherPort passwordHasher,
+            LoginPolicy loginPolicy,
             JwtPort jwtPort,
             RefreshTokenGenerator refreshTokenGenerator,
             TokenHasher tokenHasher,
@@ -44,7 +44,7 @@ public class LoginService implements LoginUseCase {
     ) {
         this.userRepository = userRepository;
         this.authSessionRepository = authSessionRepository;
-        this.passwordHasher = passwordHasher;
+        this.loginPolicy = loginPolicy;
         this.jwtPort = jwtPort;
         this.refreshTokenGenerator = refreshTokenGenerator;
         this.tokenHasher = tokenHasher;
@@ -77,12 +77,7 @@ public class LoginService implements LoginUseCase {
                     return new InvalidCredentialsException();
                 });
 
-        if (!user.isActive()) {
-            throw new InactiveUserException();
-        }
-        if (!passwordHasher.matches(command.password(), user.getPasswordHash())) {
-            throw new InvalidCredentialsException();
-        }
+        loginPolicy.validateUserCanLogin(user, command.password());
 
         Instant now = Instant.now(clock);
         String rawRefreshToken = refreshTokenGenerator.generate();

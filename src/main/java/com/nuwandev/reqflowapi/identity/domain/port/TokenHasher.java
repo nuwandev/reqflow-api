@@ -1,4 +1,4 @@
-package com.nuwandev.reqflowapi.identity.application.port.output;
+package com.nuwandev.reqflowapi.identity.domain.port;
 
 public interface TokenHasher {
     String hash(String raw);

@@ -3,8 +3,9 @@ package com.nuwandev.reqflowapi.identity.application.service;
 import com.nuwandev.reqflowapi.identity.application.port.input.AuthTokens;
 import com.nuwandev.reqflowapi.identity.application.port.input.RefreshTokenCommand;
 import com.nuwandev.reqflowapi.identity.application.port.output.JwtPort;
-import com.nuwandev.reqflowapi.identity.application.port.output.RefreshTokenGenerator;
-import com.nuwandev.reqflowapi.identity.application.port.output.TokenHasher;
+import com.nuwandev.reqflowapi.identity.domain.port.RefreshTokenGenerator;
+import com.nuwandev.reqflowapi.identity.domain.port.TokenHasher;
+import com.nuwandev.reqflowapi.identity.domain.service.RefreshTokenPolicy;
 import com.nuwandev.reqflowapi.identity.domain.exception.InvalidRefreshTokenException;
 import com.nuwandev.reqflowapi.identity.domain.exception.RefreshTokenReuseDetectedException;
 import com.nuwandev.reqflowapi.identity.domain.model.AuthSession;
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -27,8 +27,11 @@ import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -57,9 +60,10 @@ class RefreshTokenServiceTest {
     @BeforeEach
     void setUp() {
         Clock fixedClock = Clock.fixed(NOW, ZoneOffset.UTC);
+        RefreshTokenPolicy policy = new RefreshTokenPolicy(GRACE_PERIOD);
         service = new RefreshTokenService(
-                sessionRepo, userRepo, jwtPort, tokenGenerator,
-                tokenHasher, fixedClock, TTL_SECONDS, GRACE_PERIOD
+                sessionRepo, userRepo, policy, jwtPort, tokenGenerator,
+                tokenHasher, fixedClock, TTL_SECONDS
         );
         tenantId = UUID.randomUUID();
         userId = UUID.randomUUID();

@@ -1,6 +1,6 @@
 package com.nuwandev.reqflowapi.identity.infrastructure.security;
 
-import com.nuwandev.reqflowapi.identity.application.port.output.RefreshTokenGenerator;
+import com.nuwandev.reqflowapi.identity.domain.port.RefreshTokenGenerator;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;

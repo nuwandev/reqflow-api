@@ -1,6 +1,6 @@
 package com.nuwandev.reqflowapi.identity.infrastructure.security;
 
-import com.nuwandev.reqflowapi.identity.application.port.output.TokenHasher;
+import com.nuwandev.reqflowapi.identity.domain.port.TokenHasher;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;

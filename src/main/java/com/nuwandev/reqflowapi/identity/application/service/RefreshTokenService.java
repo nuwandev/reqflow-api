@@ -4,8 +4,9 @@ import com.nuwandev.reqflowapi.identity.application.port.input.AuthTokens;
 import com.nuwandev.reqflowapi.identity.application.port.input.RefreshTokenCommand;
 import com.nuwandev.reqflowapi.identity.application.port.input.RefreshTokenUseCase;
 import com.nuwandev.reqflowapi.identity.application.port.output.JwtPort;
-import com.nuwandev.reqflowapi.identity.application.port.output.RefreshTokenGenerator;
-import com.nuwandev.reqflowapi.identity.application.port.output.TokenHasher;
+import com.nuwandev.reqflowapi.identity.domain.port.RefreshTokenGenerator;
+import com.nuwandev.reqflowapi.identity.domain.port.TokenHasher;
+import com.nuwandev.reqflowapi.identity.domain.service.RefreshTokenPolicy;
 import com.nuwandev.reqflowapi.identity.domain.exception.InactiveUserException;
 import com.nuwandev.reqflowapi.identity.domain.exception.InvalidRefreshTokenException;
 import com.nuwandev.reqflowapi.identity.domain.exception.RefreshTokenReuseDetectedException;
@@ -30,38 +31,31 @@ public class RefreshTokenService implements RefreshTokenUseCase {
 
     private final AuthSessionRepository authSessionRepository;
     private final UserRepository userRepository;
+    private final RefreshTokenPolicy refreshTokenPolicy;
     private final JwtPort jwtPort;
     private final RefreshTokenGenerator refreshTokenGenerator;
     private final TokenHasher tokenHasher;
     private final Clock clock;
     private final long refreshTokenTtlSeconds;
 
-    /**
-     * Grace period in seconds during which a token that has already been rotated
-     * by one browser tab may be safely reused by a concurrent second tab.
-     * Within this window the service returns the active child session's access token
-     * instead of triggering the fraud-detection lockdown.
-     */
-    private final long rotationGracePeriodSeconds;
-
     public RefreshTokenService(
             AuthSessionRepository authSessionRepository,
             UserRepository userRepository,
+            RefreshTokenPolicy refreshTokenPolicy,
             JwtPort jwtPort,
             RefreshTokenGenerator refreshTokenGenerator,
             TokenHasher tokenHasher,
             Clock clock,
-            @Value("${auth.refresh-token-ttl-seconds:2592000}") long refreshTokenTtlSeconds,
-            @Value("${auth.rotation-grace-period-seconds:15}") long rotationGracePeriodSeconds
+            @Value("${auth.refresh-token-ttl-seconds:2592000}") long refreshTokenTtlSeconds
     ) {
         this.authSessionRepository = authSessionRepository;
         this.userRepository = userRepository;
+        this.refreshTokenPolicy = refreshTokenPolicy;
         this.jwtPort = jwtPort;
         this.refreshTokenGenerator = refreshTokenGenerator;
         this.tokenHasher = tokenHasher;
         this.clock = clock;
         this.refreshTokenTtlSeconds = refreshTokenTtlSeconds;
-        this.rotationGracePeriodSeconds = rotationGracePeriodSeconds;
     }
 
     private static void validate(RefreshTokenCommand command) {
@@ -106,9 +100,9 @@ public class RefreshTokenService implements RefreshTokenUseCase {
         // distinguish between a benign concurrent-tab replay (within the grace window)
         // and a genuine adversarial token replay (outside the grace window).
         if (session.isReuseAttempt()) {
-            if (session.isWithinRotationGracePeriod(now, rotationGracePeriodSeconds)) {
-                log.debug("Token reuse within rotation grace window ({}s) — serving child session for tenant={}",
-                        rotationGracePeriodSeconds, tenantId);
+            if (refreshTokenPolicy.isWithinGracePeriod(session, now)) {
+                log.debug("Token reuse within rotation grace window — serving child session for tenant={}",
+                        tenantId);
 
                 // Serve the already-issued child session's access token.
                 // The client already holds the new refresh token from the first successful
@@ -121,9 +115,11 @@ public class RefreshTokenService implements RefreshTokenUseCase {
                         .findById(tenantId, childSession.getUserId())
                         .orElseThrow(InvalidRefreshTokenException::new);
 
-                if (!childUser.isActive()) {
+                try {
+                    refreshTokenPolicy.validateUserCanRefresh(childUser);
+                } catch (InactiveUserException e) {
                     authSessionRepository.revokeAllByUserId(tenantId, childUser.getId(), now);
-                    throw new InactiveUserException();
+                    throw e;
                 }
 
                 return new AuthTokens(
@@ -152,9 +148,11 @@ public class RefreshTokenService implements RefreshTokenUseCase {
         User user = userRepository.findById(tenantId, session.getUserId())
                 .orElseThrow(InvalidRefreshTokenException::new);
 
-        if (!user.isActive()) {
+        try {
+            refreshTokenPolicy.validateUserCanRefresh(user);
+        } catch (InactiveUserException e) {
             authSessionRepository.revokeAllByUserId(tenantId, user.getId(), now);
-            throw new InactiveUserException();
+            throw e;
         }
 
         // ── Step 4: Issue new session (standard rotation)
