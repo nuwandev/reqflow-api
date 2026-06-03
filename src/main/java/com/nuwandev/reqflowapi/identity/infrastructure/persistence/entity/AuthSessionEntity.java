@@ -14,6 +14,7 @@ public class AuthSessionEntity {
     private Instant expiresAt;
     private Instant revokedAt;
     private UUID replacedBySessionId;
+    private Instant rotatedAt;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -95,6 +96,14 @@ public class AuthSessionEntity {
 
     public void setReplacedBySessionId(UUID replacedBySessionId) {
         this.replacedBySessionId = replacedBySessionId;
+    }
+
+    public Instant getRotatedAt() {
+        return rotatedAt;
+    }
+
+    public void setRotatedAt(Instant rotatedAt) {
+        this.rotatedAt = rotatedAt;
     }
 
     public Instant getCreatedAt() {

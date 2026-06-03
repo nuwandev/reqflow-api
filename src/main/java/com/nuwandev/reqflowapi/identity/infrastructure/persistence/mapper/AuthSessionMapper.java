@@ -22,6 +22,7 @@ public class AuthSessionMapper {
         entity.setExpiresAt(session.getExpiresAt());
         entity.setRevokedAt(session.getRevokedAt());
         entity.setReplacedBySessionId(session.getReplacedBySessionId());
+        entity.setRotatedAt(session.getRotatedAt());
         entity.setCreatedAt(session.getCreatedAt());
         entity.setUpdatedAt(session.getUpdatedAt());
         return entity;
@@ -42,6 +43,7 @@ public class AuthSessionMapper {
                 entity.getExpiresAt(),
                 entity.getRevokedAt(),
                 entity.getReplacedBySessionId(),
+                entity.getRotatedAt(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );

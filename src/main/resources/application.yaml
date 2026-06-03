@@ -24,6 +24,10 @@ auth:
   access-token-ttl-seconds: ${AUTH_ACCESS_TOKEN_TTL_SECONDS}
   refresh-token-ttl-seconds: ${AUTH_REFRESH_TOKEN_TTL_SECONDS}
   jwt-clock-skew-seconds: ${AUTH_JWT_CLOCK_SKEW_SECONDS}
+  # Grace period for the multi-tab concurrent refresh race condition guard.
+  # A rotated token resubmitted within this window returns the active child
+  # session instead of triggering fraud detection. Default: 15 seconds.
+  rotation-grace-period-seconds: ${AUTH_ROTATION_GRACE_PERIOD_SECONDS:15}
   rate-limit:
     login-per-window: ${AUTH_RATE_LIMIT_LOGIN_PER_WINDOW}
     refresh-per-window: ${AUTH_RATE_LIMIT_REFRESH_PER_WINDOW}
@@ -31,3 +35,8 @@ auth:
   jwt:
     issuer: ${AUTH_JWT_ISSUER}
     secret: ${AUTH_JWT_SECRET}
+  session-cleanup:
+    # Cron expression for the background session purge scheduler (hourly by default).
+    cron: ${AUTH_SESSION_CLEANUP_CRON:0 0 * * * *}
+    # Revoked sessions are retained for this many days for audit purposes before deletion.
+    revoked-retention-days: ${AUTH_SESSION_CLEANUP_REVOKED_RETENTION_DAYS:7}

@@ -14,6 +14,13 @@ public class AuthSession {
     private Instant expiresAt;
     private Instant revokedAt;
     private UUID replacedBySessionId;
+    /**
+     * Timestamp recorded the moment this session was rotated into a successor.
+     * Distinct from {@code revokedAt}: a rotated session is revoked immediately,
+     * but {@code rotatedAt} lets the service identify the exact rotation instant
+     * to enforce the multi-tab grace-period window.
+     */
+    private Instant rotatedAt;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -65,6 +72,7 @@ public class AuthSession {
             Instant expiresAt,
             Instant revokedAt,
             UUID replacedBySessionId,
+            Instant rotatedAt,
             Instant createdAt,
             Instant updatedAt
     ) {
@@ -98,6 +106,7 @@ public class AuthSession {
         session.expiresAt = expiresAt;
         session.revokedAt = revokedAt;
         session.replacedBySessionId = replacedBySessionId;
+        session.rotatedAt = rotatedAt;
         session.createdAt = createdAt;
         session.updatedAt = updatedAt;
 
@@ -157,6 +166,10 @@ public class AuthSession {
         return replacedBySessionId;
     }
 
+    public Instant getRotatedAt() {
+        return rotatedAt;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -200,8 +213,24 @@ public class AuthSession {
             throw new IllegalStateException("Session is already replaced by another session");
 
         this.replacedBySessionId = newSessionId;
+        this.rotatedAt = now;
         this.revokedAt = now;
         this.updatedAt = now;
+    }
+
+    /**
+     * Returns true if this session was rotated within the given grace period.
+     * Used by the multi-tab race-condition guard: if a second browser tab submits
+     * the already-rotated token within the grace window we serve the active child
+     * session instead of triggering fraud detection.
+     *
+     * @param now            current instant
+     * @param gracePeriodSeconds number of seconds to tolerate a reuse of a rotated token
+     */
+    public boolean isWithinRotationGracePeriod(Instant now, long gracePeriodSeconds) {
+        requireNow(now);
+        if (rotatedAt == null) return false;
+        return rotatedAt.plusSeconds(gracePeriodSeconds).isAfter(now);
     }
 
     public boolean isReuseAttempt() {

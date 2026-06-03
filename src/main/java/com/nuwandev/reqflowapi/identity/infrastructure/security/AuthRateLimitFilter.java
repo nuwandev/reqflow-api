@@ -91,13 +91,50 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         counters.entrySet().removeIf(entry -> entry.getValue().windowEndsAt.isBefore(now));
     }
 
+    /**
+     * Resolves the canonical client IP used as the rate-limit bucket key.
+     *
+     * <p>The {@code X-Forwarded-For} header is processed by extracting the
+     * <em>first</em> IP in the chain (the original client address) and validating
+     * it against a strict IPv4/IPv6 format check before trusting it. This prevents
+     * attackers from bypassing the rate limiter by cycling arbitrary strings in the
+     * header; an invalid or missing format causes an immediate fall-back to the
+     * network-layer {@code RemoteAddr}, which cannot be spoofed by the client.
+     *
+     * <p><strong>Note:</strong> for production deployments behind a trusted reverse
+     * proxy, consider also validating that the request originates from a known proxy
+     * CIDR range before accepting {@code X-Forwarded-For} at all.
+     */
     private String resolveClientKey(HttpServletRequest request) {
         String forwardedFor = request.getHeader("X-Forwarded-For");
         if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].trim();
+            String candidateIp = forwardedFor.split(",")[0].trim();
+            if (isValidIpFormat(candidateIp)) {
+                return candidateIp;
+            }
+            // Invalid format — do not trust the header; fall through to RemoteAddr.
         }
         String remoteAddress = request.getRemoteAddr();
         return remoteAddress != null ? remoteAddress : "unknown";
+    }
+
+    /**
+     * Validates that the given string is a syntactically valid IPv4 or IPv6 address.
+     * Uses {@link java.net.InetAddress} parsing via a try/catch to leverage the JDK's
+     * own battle-tested address parser rather than a fragile hand-rolled regex.
+     */
+    private boolean isValidIpFormat(String ip) {
+        if (ip == null || ip.isBlank()) return false;
+        try {
+            java.net.InetAddress.getByName(ip);
+            // Reject hostnames — InetAddress.getByName resolves them; we only want literals.
+            // A pure IP literal never contains letters (other than hex in IPv6) or dots
+            // followed by non-digits. The simplest discriminator: if the input contains
+            // only valid IP characters (digits, dots, colons, hex A-F) it is a literal.
+            return ip.matches("^[0-9a-fA-F:.]+$");
+        } catch (java.net.UnknownHostException e) {
+            return false;
+        }
     }
 
     private String resolvePath(HttpServletRequest request) {

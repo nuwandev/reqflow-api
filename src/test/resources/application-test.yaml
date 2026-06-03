@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;NON_KEYWORDS=VALUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  flyway:
+    enabled: false
+
+  sql:
+    init:
+      mode: always
+
+  threads:
+    virtual:
+      enabled: false  # Disabled for test determinism
+
+auth:
+  access-token-ttl-seconds: 900
+  refresh-token-ttl-seconds: 2592000
+  jwt-clock-skew-seconds: 30
+  rotation-grace-period-seconds: 15
+  rate-limit:
+    login-per-window: 100
+    refresh-per-window: 100
+    window-seconds: 60
+  jwt:
+    issuer: reqflow-api-test
+    secret: test-secret-key-that-is-at-least-32-bytes-long!!
+  session-cleanup:
+    cron: "-"
+    revoked-retention-days: 7
